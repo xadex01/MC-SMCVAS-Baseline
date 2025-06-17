@@ -1,0 +1,68 @@
+---
+title: "MC_SMCVAS Baseline Analysis"
+author: "AbdulHafiz Abba"
+date: "2025-06-17"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(readxl)
+
+df <- read_excel("Dataset/SMC_VAS BAUCHI BASELINE SURVEY 2025_Play.xlsx")
+
+```
+```{r echo=FALSE, warning=FALSE}
+# Calculate frequency and percent
+lga_table <- as.data.frame(table(df$LGA))
+colnames(lga_table) <- c("LGA", "Frequency")
+
+# Calculate percentages
+lga_table$Percent <- round((lga_table$Frequency / sum(lga_table$Frequency)) * 100, 1)
+
+# Add total row
+total_row <- data.frame(
+  LGA = "Total",
+  Frequency = sum(lga_table$Frequency),
+  Percent = 100.0
+)
+
+# Combine
+lga_table_final <- rbind(lga_table, total_row)
+
+# Print the result
+print(lga_table_final, row.names = FALSE)
+```
+```{r echo=FALSE}
+# Load required libraries
+library(ggplot2)
+library(dplyr)
+
+# Replace with your actual data import
+# df <- read.csv("your_data.csv")
+
+# Summarize LGA frequencies
+lga_table <- df %>%
+  count(LGA) %>%
+  arrange(LGA)  # alphabetical sort
+
+# Plot bar chart sorted alphabetically
+ggplot(lga_table, aes(x = LGA, y = n)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  geom_text(aes(label = n), vjust = -0.5, size = 3.5) +
+  labs(title = "Distribution of Respondents by LGA",
+       x = "LGA",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+
+## Demographic Profile of Respondents
+
+1. Geographic Distribution
+
