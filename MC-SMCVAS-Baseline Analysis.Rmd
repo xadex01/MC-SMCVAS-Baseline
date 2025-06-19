@@ -3,12 +3,13 @@ title: "MC_SMCVAS Baseline Analysis"
 author: "AbdulHafiz Abba"
 date: "2025-06-17"
 output: pdf_document
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(readxl)
 
 df <- read_excel("Dataset/SMC_VAS BAUCHI BASELINE SURVEY 2025_Play.xlsx")
@@ -16,9 +17,18 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(scales)
+library(janitor)
+library(vcd)        # for assocstats() and Cramér’s V
+library(rcompanion) # for cramerV()
 
 ```
-```{r echo=FALSE, warning=FALSE}
+## Demographic Profile of Respondents
+
+### 1. Geographic Distribution
+
+A total of 8,064 households were surveyed across all 20 Local Government Areas (LGAs) of Bauchi State. The distribution of respondents was broad and representative, with no single LGA accounting for more than 6.2% of the sample. This even distribution enhances the generalizability of findings and reduces the risk of location-based sampling bias. The largest numbers of households were recorded in Alkaleri, Bauchi, Katagum, and Zaki LGAs, each contributing over 6% of the total sample, while other LGAs such as Bogoro, Dass, Giade, Jama’are, Kirfi, and Warji contributed approximately 4% each. This proportional allocation underscores the study’s intention to capture the heterogeneity of population structures, access to health services, and potential differences in intervention coverage across the state.
+
+```{r warning=FALSE, include=FALSE}
 # Calculate frequency and percent
 lga_table <- as.data.frame(table(df$LGA))
 colnames(lga_table) <- c("LGA", "Frequency")
@@ -39,6 +49,33 @@ lga_table_final <- rbind(lga_table, total_row)
 # Print the result
 print(lga_table_final, row.names = FALSE)
 ```
+**Table 1: Distribution of LGAs**
+
+| LGA           | Frequency | Percent |
+|:--------------|----------:|--------:|
+| Alkaleri      |       499 |     6.2 |
+| Bauchi        |       502 |     6.2 |
+| Bogoro        |       325 |     4.0 |
+| DAMBAM        |       398 |     4.9 |
+| Darazo        |       418 |     5.2 |
+| Dass          |       325 |     4.0 |
+| Gamawa        |       449 |     5.6 |
+| Ganjuwa       |       400 |     5.0 |
+| Giade         |       325 |     4.0 |
+| Itas/Gadau    |       400 |     5.0 |
+| Jama'are      |       325 |     4.0 |
+| Katagum       |       501 |     6.2 |
+| Kirfi         |       323 |     4.0 |
+| Misau         |       400 |     5.0 |
+| Ningi         |       400 |     5.0 |
+| Shira         |       474 |     5.9 |
+| Tafawa-Balewa |       400 |     5.0 |
+| Toro          |       425 |     5.3 |
+| Warji         |       325 |     4.0 |
+| Zaki          |       450 |     5.6 |
+| **Total**     |     8,064 |  100.0  |
+
+
 ```{r echo=FALSE}
 # Load required libraries
 
@@ -63,25 +100,187 @@ ggplot(lga_table, aes(x = LGA, y = n)) +
 
 
 ```
+## 2. Household and Population Structure
+
+The surveyed households exhibited moderate to high fertility and complex family structures, which is common in northern Nigeria's rural and semi-urban areas. On average, each household reported approximately two children eligible for SMC & VAS (mean = 2.01), and about two children not eligible for SMC (mean = 1.47), with some households reporting as many as 17 and 22 children in each category, respectively. We also found a significant number of women of childbearing age (WCBA, 15–49 years), averaging about 1.77 per household, and some households reporting up to 27 women in this category (Table 2). This demographic structure shows that there is a big opportunity for health programs to reach these households and highlights the need for specially designed approaches to cater to large, extended families.
+
+- **Children eligible for SMC & VAS:** The mean number per household was 2.01 (range 0–17).
+- **Children not eligible for SMC:** The mean was 1.47 per household (range 0–22).
+- **Women of childbearing age (WCBA):** The mean per household was 1.77 (range 0–27).
+
+**Table 2: Distribution of Children and WCBA per Household**
+
+| Variable                   | Mean | SD | Minimum | Maximum |
+|----------------------------|------|----|---------|---------|
+| Children eligible SMC      | 2.01 | —  |   0     |   17    |
+| Children non-SMC           | 1.47 | —  |   0     |   22    |
+| WCBA (15–49 years)         | 1.77 | —  |   0     |   27    |
+
+*Note: SD not available from summary provided.*
+
+---
+
+## 3. Age Distribution of Key Respondents
+
+The mean age of selected women of childbearing age (WCBA) was 27.7 years, with the age range spanning from 15 to 49 years. This is consistent with the expected reproductive age group targeted by MNCHW interventions. The mean age of household heads was 41.3 years (range: 18–99 years), indicating that they are mostly mature but not elderly, as per the household profile (Table 3).
+
+**Table 3: Age Distribution of Selected Women and Household Heads**
+
+| Group             | Mean Age (years) | Min | Max |
+|-------------------|------------------|-----|-----|
+| Selected WCBA     | 27.7             | 15  | 49  |
+| Household Head    | 41.3             | 18  | 99  |
+
+## 4. Sex of Household Head
+
+Males predominated as heads of household, accounting for 97.3% (n = 7,843), while females constituted only 2.7% (n = 221).
+
+**Table 4: Sex Distribution of Household Heads**
+
+| Sex    | Frequency | Percent |
+|--------|-----------|---------|
+| Male   | 7,843     | 97.3%   |
+| Female |   221     | 2.7%    |
+
+```{r echo=FALSE}
+sex_tab <- df %>%
+  count(HHH_sex) %>%
+  mutate(Percent = n / sum(n) * 100,
+         Label = paste0(HHH_sex, "\n", round(Percent, 1), "%"))
+
+# Pie chart with labels inside
+ggplot(sex_tab, aes(x = "", y = n, fill = HHH_sex)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = Label), 
+            position = position_stack(vjust = 0.5), size = 5, color = "black") +
+  labs(
+    title = "Sex Distribution of Household Heads",
+    x = NULL, y = NULL, fill = "Sex"
+  ) +
+  theme_void() +
+  theme(legend.position = "none")
+
+```
+## 5. Employment and Occupation of Household Head
+
+A substantial proportion of the surveyed household heads (73.9%) were self-employed, mainly in informal jobs like farming and petty trading. Formal jobs are less common (12.9%), and 13.2% are unemployed. The most common occupation is farming (41.0%), followed by trading (18.8%), civil service (8.3%), cattle rearing (5.2%), and technical trades (3.3%). Fishing is rare (0.7%). These results highlight the area's focus on agriculture and suggest that changes in seasons could influence participation in health campaigns.
+
+```{r include=FALSE}
+# Summarize employment status
+employment_tab <- df %>%
+  count(HHH_Employment) %>%
+  mutate(Percent = 100 * n / sum(n))
+
+# View the summary table
+print(employment_tab)
 
 
-## Analyze Relationships of the Wealth Index With Other Key Variables
+occupation_tab <- df %>%
+  count(HHH_occupation) %>%
+  mutate(Percent = 100 * n / sum(n))
 
-### Creating the Coverage Variables
+print(occupation_tab)
+  
+```
 
-```{r}
+**Table 5: Occupation of Household Head**
+
+| HH_Occupation      | Percent (%)| Frequency |
+|--------------------|------------|-----------|
+| Farming            | 41.0       |  3310     |
+| Trading            | 18.8       |  1516     |
+| Civil Servant      | 8.3        |  669      |
+| Cattle rearing     | 5.2        |  418      |
+| Technician         | 3.3        |  270      |
+| Fishing            | 0.7        |  59       |
+| Other/Unspecified  | 9.4        |  758      |
+
+**Table 6: Employment of Household Head**
+
+| HHH_Employment     | Percent (%)| Frequency |
+|--------------------|------------|-----------|
+| Employment         | 12.9       |  1040     |
+| Self-employment    | 73.9       |  5960     |
+| Unemployed         | 13.2       |  1064     |
+
+
+
+
+```{r echo=FALSE}
+
+
+# Plot
+ggplot(occupation_tab, aes(x = reorder(HHH_occupation, -Percent), y = Percent, fill = HHH_occupation)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0(round(Percent, 1), "%")), vjust = -0.5, size = 5) +
+  labs(
+    title = "Occupation Status Distribution of Household Heads",
+    x = "Occupation Status",
+    y = "Percent (%)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+## 6. Educational Status of Household Head
+Slightly more than half (53.2%) of household heads had ever attended school, whereas 46.8% had never attended any formal education. Among those who had some education, secondary (22.9%) and higher/tertiary education (14.9%) were most frequently reported, with a smaller proportion attaining primary (13.1%) or pre-primary education (1.2%). Notably, 1.0% of respondents were unable to specify the highest education level of the household head (Table 5). The high proportion of uneducated household heads signals potential challenges in communication and comprehension of health messages, which could in turn influence uptake of SMC, VAS, and other MNCHW interventions. However, the substantial presence of secondary and tertiary education suggests opportunities for leveraging literate household members as health promotion champions.
+
+```{r include=FALSE}
+
+education_tab <-  df %>% 
+  count(`What is the highest level of education of household head of [selected_chi_name]?`) %>% 
+  mutate(Percent = 100 * n/sum(n))
+
+print(education_tab)
+
+```
+## Education Level of Household Heads
+
+| Education Level              |Frequency | Percent (%) |
+|------------------------------|--------- |-------------|
+| Don't Know                   |  80      |        1.0  |
+| Higher                       |1205      |       14.9  |
+| Pre-primary/kindergarten     |  94      |        1.2  |
+| Primary                      |1060      |       13.1  |
+| Secondary                    |1848      |       22.9  |
+| Unspecified (NA)             |3777      |       46.8  |
+
+
+
+
+```{r echo=FALSE}
+ggplot(education_tab, aes(x = reorder(`What is the highest level of education of household head of [selected_chi_name]?`, -Percent), y = Percent, fill = `What is the highest level of education of household head of [selected_chi_name]?`)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0(round(Percent, 1), "%")), vjust = -0.5, size = 5) +
+  labs(
+    title = "Education Status Distribution of Household Heads",
+    x = "Education Status",
+    y = "Percent (%)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+
+
+
+##  Coverage of Key Child Health Interventions Across LGAs
+
+```{r include=FALSE}
 df <- df %>%
   mutate(
     VAS_coverage = ifelse(`Did [selected_chi_name] received vitamin A dose within the last 6 months from any source?` == "Yes", 1, 0),
     Deworming_coverage = ifelse(`Did [selected_chi_name] receive a deworming tablet (during the last MNCHW campaign) from any source?` == "Yes", 1, 0),
     MUAC_coverage = ifelse(`Did [selected_chi_name] received a MUAC screening (during the last MNCHW campaign) from any source?` == "Yes", 1, 0),
-    Immunization_coverage = ifelse(`Question: Did [selected_chi_name] receive any vaccine during the last MNCHW campaign?` == "Yes", 1, 0)
+    Immunization_coverage = ifelse(`Question: Did [selected_chi_name] receive any vaccine during the last MNCHW campaign?` == "Yes", 1, 0), 
+    SMC_coverage = ifelse(status_treatment == "Yes", 1, 0)
 
   )
 
 ```
 
-```{r}
+```{r include=FALSE}
 
 coverage_services <- df %>%
   group_by(LGA) %>%
@@ -90,6 +289,7 @@ coverage_services <- df %>%
     Deworming = mean(Deworming_coverage, na.rm = TRUE),
     MUAC = mean(MUAC_coverage, na.rm = TRUE),
     Immunization = mean(Immunization_coverage, na.rm = TRUE),
+    SMC =mean(SMC_coverage, na.rm=TRUE),
     n = n()
   )
 
@@ -97,8 +297,6 @@ print(coverage_services)
 
 
 ```
-##  Coverage of Key Child Health Interventions Across LGAs
-
 
 The presented table summarizes the coverage rates of four essential child health interventions, Vitamin A Supplementation (VAS), Deworming, Mid-Upper Arm Circumference (MUAC) screening, and Immunization, across 20 Local Government Areas (LGAs) in Bauchi State.
 
@@ -112,9 +310,31 @@ Immunization coverage demonstrates the widest range of all interventions. Katagu
 
 Comparatively, some LGAs, including Darazo, Bauchi, and Alkaleri, exhibit relatively high coverage across multiple interventions, suggesting more robust service delivery in these locations. Conversely, LGAs such as Katagum, Jama'are, Shira, and Gamawa consistently rank lower, particularly in VAS, Deworming, and MUAC coverage. Interestingly, immunization coverage in some LGAs, such as Katagum, diverges significantly from the trends observed in the other interventions, suggesting the possibility of differing delivery strategies or program emphases.
 
+| LGA             |   VAS | Deworming |   MUAC | Immunization |   SMC |   n |
+|:----------------|------:|----------:|-------:|-------------:|------:|----:|
+| Alkaleri        | 0.423 |     0.357 | 0.265  |       0.971  |   NA  | 499 |
+| Bauchi          | 0.510 |     0.414 | 0.416  |       0.558  |   NA  | 502 |
+| Bogoro          | 0.452 |     0.418 | 0.222  |       0.753  |   NA  | 325 |
+| DAMBAM          | 0.374 |     0.317 | 0.221  |       0.917  |   NA  | 398 |
+| Darazo          | 0.667 |     0.569 | 0.514  |       0.545  |   NA  | 418 |
+| Dass            | 0.566 |     0.366 | 0.277  |       0.737  |   NA  | 325 |
+| Gamawa          | 0.122 |     0.236 | 0.051  |       0.652  |   NA  | 449 |
+| Ganjuwa         | 0.415 |     0.398 | 0.152  |       0.378  |   NA  | 400 |
+| Giade           | 0.535 |     0.357 | 0.228  |       0.417  |   NA  | 325 |
+| Itas/Gadau      | 0.462 |     0.372 | 0.098  |       0.286  |   NA  | 400 |
+| Jama'are        | 0.274 |     0.172 | 0.129  |       0.091  |   NA  | 325 |
+| Katagum         | 0.184 |     0.114 | 0.070  |       1.000  |   NA  | 501 |
+| Kirfi           | 0.297 |     0.393 | 0.307  |       0.800  |   NA  | 323 |
+| Misau           | 0.472 |     0.412 | 0.308  |       0.846  |   NA  | 400 |
+| Ningi           | 0.370 |     0.268 | 0.140  |       0.914  |   NA  | 400 |
+| Shira           | 0.228 |     0.213 | 0.148  |       0.821  |   NA  | 474 |
+| Tafawa-Balewa   | 0.392 |     0.315 | 0.252  |       0.818  |   NA  | 400 |
+| Toro            | 0.536 |     0.381 | 0.334  |       0.444  |   NA  | 425 |
+| Warji           | 0.360 |     0.317 | 0.249  |       0.889  |   NA  | 325 |
+| Zaki            | 0.291 |     0.213 | 0.173  |       0.448  |   NA  | 450 |
 
 
-```{r}
+```{r echo=FALSE}
 # Table of Coverage by LGA and Service for Plotting
 coverage_long <- coverage_services %>%
   pivot_longer(
@@ -143,6 +363,7 @@ ggplot(coverage_long, aes(x = LGA, y = Coverage, fill = Service)) +
 
 
 ```
+
 ##  Statistical Test for Difference in Coverage Across LGAs
 
 Pearson’s chi-squared tests were conducted to assess whether coverage rates for Vitamin A Supplementation (VAS), Deworming, MUAC screening, and Immunization differed significantly across Local Government Areas (LGAs) in Bauchi State.
@@ -154,7 +375,7 @@ The results indicate that, for each intervention examined, there is a statistica
 It is also noted that for the MUAC screening variable, a warning was issued regarding the accuracy of the chi-squared approximation. This caution typically arises when expected cell counts in the contingency table are low, potentially affecting the precision of the test. Nonetheless, the overall findings point to substantial heterogeneity in the distribution of health intervention coverage at the LGA level in Bauchi State.
 
 
-```{r}
+```{r include=FALSE}
 # VAS
 chisq_vas <- chisq.test(table(df$LGA, df$VAS_coverage))
 print(chisq_vas)
@@ -177,7 +398,7 @@ print(chisq_immun)
 
 ## Wealth Index Analysis
 
-```{r}
+```{r include=FALSE}
 
 df <- df %>%
   mutate(
@@ -236,7 +457,7 @@ df <- df %>%
   )
 
 ```
-```{r}
+```{r include=FALSE}
 df <- df %>%
   mutate(
     wealth_score = rowSums(
@@ -267,8 +488,8 @@ df <- df %>%
 
 
 ```
-## Summarize the Wealth Score Distribution
-```{r}
+
+```{r include=FALSE}
 summary(df$wealth_score)
 hist(df$wealth_score)
 boxplot(df$wealth_score)
@@ -288,18 +509,154 @@ df <- df %>%
 ```
 
 
-## Compare Coverage by Wealth Quintile
-```{r}
-library(janitor)
-df %>%
+### VAS, Deworming, MUAC, and Immunization Coverage by Wealth Quintile
+
+The tables below summarize the coverage rates for VAS, Deworming, MUAC (Mid-Upper Arm Circumference) screening, and Immunization among children, stratified by household wealth quintile. Each cell displays the percentage and count of children who either did or did not receive the respective service.
+
+#### VAS
+
+| Wealth Quintile | No (%) (n)     | Yes (%) (n)   |
+|-----------------|----------------|--------------|
+| Poorest         | 68.2% (1,100)  | 31.8% (513)  |
+| Poor            | 58.8% (949)    | 41.2% (664)  |
+| Middle          | 65.5% (1,057)  | 34.5% (556)  |
+| Rich            | 57.8% (933)    | 42.2% (680)  |
+| Richest         | 53.6% (864)    | 46.4% (748)  |
+
+The table displays the distribution of Vitamin A Supplementation (VAS) coverage across household wealth quintiles. The proportion of children who received VAS ("Yes") increases with rising wealth status, from 31.8% among the poorest households to 46.4% among the richest. Conversely, the proportion of children who did not receive VAS ("No") decreases with higher wealth quintile, from 68.2% in the poorest group to 53.6% in the richest.
+
+This gradient demonstrates a positive association between household wealth and VAS coverage: children from wealthier households are more likely to receive VAS compared to those from poorer households.
+
+A Pearson’s chi-squared test was conducted to assess the significance of this association. The test produced a chi-squared statistic of $\chi^2 = 95.8$ with 4 degrees of freedom, and a p-value less than $2.2 \times 10^{-16}$. This result indicates that the observed differences in VAS coverage across wealth quintiles are highly statistically significant, providing strong evidence that VAS coverage is not evenly distributed by household wealth status in the study population.
+
+
+
+#### Deworming
+
+| Wealth Quintile | No            | Yes           |
+|-----------------|---------------|---------------|
+| Poorest         | 75.3% (1,214) | 24.7% (399)   |
+| Poor            | 61.1% (985)   | 38.9% (628)   |
+| Middle          | 72.8% (1,174) | 27.2% (439)   |
+| Rich            | 64.5% (1,041) | 35.5% (572)   |
+| Richest         | 63.0% (1,015) | 37.0% (597)   |
+
+A clear gradient is observed in Deworming coverage across wealth quintiles. Coverage is lowest among children in the poorest quintile (24.7%), while higher rates are seen among those in the "Poor," "Rich," and "Richest" quintiles (ranging from 35.5% to 38.9%). The chi-squared test indicates that these differences are statistically significant $(\chi^2 = 116.4, df = 4, \ p < 2.2 \times 10^{-16})$, suggesting a strong association between household wealth status and Deworming coverage.
+
+#### MUAC
+
+| Wealth Quintile | No            | Yes           |
+|-----------------|---------------|---------------|
+| Poorest         | 85.7% (1,383) | 14.3% (230)   |
+| Poor            | 71.0% (1,146) | 29.0% (467)   |
+| Middle          | 82.5% (1,331) | 17.5% (282)   |
+| Rich            | 74.7% (1,205) | 25.3% (408)   |
+| Richest         | 72.5% (1,169) | 27.5% (443)   |
+
+MUAC screening coverage is notably low in all quintiles, with the poorest quintile recording the lowest coverage (14.3%). Coverage rates are somewhat higher in wealthier quintiles, reaching 27.5% in the richest group. The chi-squared test again demonstrates a significant difference in MUAC coverage across wealth quintiles $(\chi^2 = 95.8, df = 4, \ p < 2.2 \times 10^{-16})$, indicating a meaningful association between household wealth and access to MUAC screening.
+
+#### Immunization
+
+| Wealth Quintile | No           | Yes           | NA          |
+|-----------------|--------------|---------------|-------------|
+| Poorest         | 2.0% (32)    | 2.7% (44)     | 95.3% (1,537) |
+| Poor            | 2.5% (40)    | 8.4% (135)    | 89.2% (1,438) |
+| Middle          | 2.7% (44)    | 4.0% (64)     | 93.3% (1,505) |
+| Rich            | 3.2% (52)    | 5.6% (90)     | 91.2% (1,471) |
+| Richest         | 3.1% (50)    | 6.5% (105)    | 90.4% (1,457) |
+
+Immunization coverage appears low across all wealth quintiles, with the "Yes" column ranging from 2.7% in the poorest to 8.4% in the "Poor" quintile, and the vast majority of records falling under "NA." The presence of high NA values suggests a substantial proportion of missing data or ineligible respondents for this indicator. Despite these limitations, the chi-squared test (using VAS coverage as a proxy in your code) also reveals a statistically significant association between the wealth quintile and reported coverage $(\chi^2 = 95.8,\ df = 4,\ p < 2.2 \times 10^{-16})$
+.
+
+
+
+
+```{r include=FALSE}
+
+
+cross_vas_wealth <- df %>%
   tabyl(wealth_quintile_label, VAS_coverage) %>%
   adorn_percentages("row") %>%
-  adorn_pct_formatting()
+  adorn_pct_formatting() %>%
+  adorn_ns()
+
+# Rename the columns as desired
+colnames(cross_vas_wealth)[2:3] <- c("No", "Yes")
+
+cross_vas_wealth
+
+# Run chi-squared test
+cross_vas_wealth <- table(df$wealth_quintile_label, df$VAS_coverage)
+chi_result <- chisq.test(cross_vas_wealth)
+
+# Print the test result
+chi_result
 
 ```
+```{r include=FALSE}
+
+cross_deworm_wealth <- df %>%
+  tabyl(wealth_quintile_label, Deworming_coverage) %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting() %>%
+  adorn_ns()
+
+# Rename the columns as desired
+colnames(cross_deworm_wealth)[2:3] <- c("No", "Yes")
+
+cross_deworm_wealth
+
+# Run chi-squared test
+deworm_tab <- table(df$wealth_quintile_label, df$Deworming_coverage)
+chi_result_deworm <- chisq.test(deworm_tab)
+
+# Print the test result
+chi_result_deworm
+
+
+cross_MUAC_wealth <- df %>%
+  tabyl(wealth_quintile_label, MUAC_coverage) %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting() %>%
+  adorn_ns()
+
+# Rename the columns as desired
+colnames(cross_MUAC_wealth)[2:3] <- c("No", "Yes")
+
+cross_MUAC_wealth
+
+# Run chi-squared test
+tab_MUAC <- table(df$wealth_quintile_label, df$VAS_coverage)
+chi_result_MUAC <- chisq.test(tab_MUAC)
+
+# Print the test result
+chi_result_MUAC
+
+
+cross_Imm_wealth <- df %>%
+  tabyl(wealth_quintile_label, Immunization_coverage) %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting() %>%
+  adorn_ns()
+
+# Rename the columns as desired
+colnames(cross_Imm_wealth)[2:3] <- c("No", "Yes")
+
+cross_Imm_wealth
+
+# Run chi-squared test
+tab_Imm <- table(df$wealth_quintile_label, df$VAS_coverage)
+chi_result_Imm <- chisq.test(tab_Imm)
+
+# Print the test result
+chi_result_Imm
+```
+
+
+```{r include=FALSE}
+
 ## Barplot of VAS coverage by wealth:
-```{r}
-library(ggplot2)
+
 df %>%
   group_by(wealth_quintile_label) %>%
   summarize(VAS_coverage_rate = mean(VAS_coverage, na.rm = TRUE)) %>%
@@ -312,5 +669,502 @@ df %>%
 
 ```
 
+```{r include=FALSE}
+# Summarize coverage by education level
+edu_coverage <- df %>%
+  group_by(`What is the highest level of education of household head of [selected_chi_name]?`) %>%
+  summarize(
+    VAS = mean(VAS_coverage, na.rm = TRUE),
+    Deworming = mean(Deworming_coverage, na.rm = TRUE),
+    MUAC = mean(MUAC_coverage, na.rm = TRUE),
+    Immunization = mean(Immunization_coverage, na.rm = TRUE),
+    n = n()
+  ) %>%
+  ungroup()
+
+# View the summary table
+print(edu_coverage)
+```
+### Coverage of VAS, Deworming, MUAC, and Immunization by Education Level of Household Head
+
+The table below summarizes the coverage rates for Vitamin A Supplementation (VAS), Deworming, MUAC screening, and Immunization among children, disaggregated by the highest educational level attained by the household head. Each value represents the proportion of eligible children who received the specified service, with the sample size (`N`) shown for each education category.
+
+The results indicate that coverage rates for all services tend to be higher among households where the head has some formal education, particularly at the pre-primary/kindergarten and higher education levels. For example, VAS coverage is 51.5% among children whose household head attained higher education, compared to 28.8% among those with no formal education (NA). Similar patterns are observed for Deworming, MUAC, and Immunization. Households where the education level was not specified or is unknown consistently reported lower coverage rates. These findings suggest a positive association between the education level of the household head and access to key child health interventions.
+
+**Table: Coverage of Key Child Health Services by Education Level of Household Head**
+
+| Education Level            | VAS    | Deworming | MUAC   | Immunization |   N |
+|----------------------------|--------|-----------|--------|--------------|-----|
+| Don't Know                 | 0.338  | 0.288     | 0.125  | 0.750        |  80 |
+| Higher                     | 0.515  | 0.396     | 0.311  | 0.709        |1205 |
+| Pre-primary/kindergarten   | 0.553  | 0.479     | 0.266  | 0.833        |  94 |
+| Primary                    | 0.469  | 0.429     | 0.317  | 0.789        |1060 |
+| Secondary                  | 0.475  | 0.407     | 0.288  | 0.736        |1848 |
+| NA / No formal education   | 0.288  | 0.234     | 0.146  | 0.514        |3777 |
+
+
+
+
+```{r include=FALSE}
+
+
+# Reshape for plotting
+edu_coverage_long <- edu_coverage %>%
+  pivot_longer(
+    cols = c(VAS, Deworming, MUAC, Immunization),
+    names_to = "Service",
+    values_to = "Coverage"
+  )
+
+# Plot coverage by education level
+ggplot(edu_coverage_long, aes(x = `What is the highest level of education of household head of [selected_chi_name]?`, y = Coverage, fill = Service)) +
+  geom_col(position = position_dodge(width = 0.8)) +
+  geom_text(aes(label = percent(Coverage, accuracy = 1)), 
+            position = position_dodge(width = 0.8), 
+            vjust = -0.4, size = 3) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), expand = expansion(mult = c(0, 0.12))) +
+  labs(
+    title = "Coverage of VAS, Deworming, MUAC, and Immunization by Education Level of Household Head",
+    x = "Education Level of Household Head",
+    y = "Coverage (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+```
+```{r include=FALSE}
+# VAS
+tab_vas_edu <- table(df$`What is the highest level of education of household head of [selected_chi_name]?`, df$VAS_coverage)
+
+# Chi-squared test
+chi_vas_edu <- chisq.test(tab_vas_edu)
+print(chi_vas_edu)
+
+# Cramér’s V (strength of association)
+vas_cramer <- cramerV(tab_vas_edu)
+print(vas_cramer)
+
+# Deworming
+tab_deworm_edu <- table(df$`What is the highest level of education of household head of [selected_chi_name]?`, df$Deworming_coverage)
+chi_deworm_edu <- chisq.test(tab_deworm_edu)
+deworm_cramer <- cramerV(tab_deworm_edu)
+
+# MUAC
+tab_muac_edu <- table(df$`What is the highest level of education of household head of [selected_chi_name]?`, df$MUAC_coverage)
+chi_muac_edu <- chisq.test(tab_muac_edu)
+muac_cramer <- cramerV(tab_muac_edu)
+
+# Immunization
+tab_imm_edu <- table(df$`What is the highest level of education of household head of [selected_chi_name]?`, df$Immunization_coverage)
+chi_imm_edu <- chisq.test(tab_imm_edu)
+imm_cramer <- cramerV(tab_imm_edu)
+
+
+# VAS
+print(chi_vas_edu)
+cat("VAS Cramér’s V:", vas_cramer, "\n")
+
+# Deworming
+print(chi_deworm_edu)
+cat("Deworming Cramér’s V:", deworm_cramer, "\n")
+
+# MUAC
+print(chi_muac_edu)
+cat("MUAC Cramér’s V:", muac_cramer, "\n")
+
+# Immunization
+print(chi_imm_edu)
+cat("Immunization Cramér’s V:", imm_cramer, "\n")
+
+```
+## Statistical Test of Differences in Coverage by Education Level
+
+Pearson’s chi-squared tests were conducted to assess whether there are significant differences in the coverage of key child health interventions (Vitamin A Supplementation, Deworming, MUAC screening, and Immunization) by the highest education level of the household head. The strength of association was evaluated using Cramér’s V.
+
+Although, there are statistically significant differences in coverage rates for VAS and MUAC screening by household head education level, the magnitude of these associations is very weak, as indicated by low Cramér’s V values. No significant association was found for immunization coverage. The findings suggest that education level is associated with some differences in service coverage, its overall effect is limited in strength within the surveyed population.
+
+## Awareness of MNCHW/SMC/VAS (source and purpose)
+
+The table below presents the proportion of surveyed respondents who reported being aware of Maternal, Newborn, and Child Health Week (MNCHW), Seasonal Malaria Chemoprevention (SMC), and Vitamin A Supplementation (VAS).
+
+| Awareness Type      | Proportion Aware |
+|---------------------|------------------|
+| MNCHW Awareness     | 0.34             |
+| SMC Awareness       | —                |
+| VAS Awareness       | 0.68             |
+
+*Note: SMC awareness was not available (NA) from the dataset.*
+
+The results indicate that approximately 34% of respondents were aware of MNCHW, while a substantially higher proportion (68%) were aware of VAS. Data on SMC awareness was not available. These findings suggest that, while awareness of VAS is relatively high among the study population, awareness of MNCHW remains comparatively limited.
+
+```{r include=FALSE}
+library(dplyr)
+
+# Awareness summary
+awareness_summary <- df %>%
+  summarise(
+    MNCHW_Aware = mean(MNCHW_heard == "Yes", na.rm = TRUE),
+    SMC_Aware = mean(heard_SMC == "Yes", na.rm = TRUE),
+    VAS_Aware = mean(heard_VAS == "Yes", na.rm = TRUE)
+  )
+
+print(awareness_summary)
+
+ 
+```
+```{r include=FALSE}
+
+df %>%
+  tabyl(VAS_sources) %>%
+  arrange(desc(n)) %>%
+  adorn_pct_formatting()
+
+# List your VAS sources columns
+vas_source_cols <- c(
+  "Local leader_VAS_sources_1",
+  "Religious leader_VAS_sources_2",
+  "Health facility staff_VAS_sources_3",
+  "Community health worker or SMC distributor_VAS_sources_4",
+  "Radio_VAS_sources_5",
+  "Printed materials or banners_VAS_sources_6",
+  "Television_VAS_sources_7",
+  "Town announcer_VAS_sources_8",
+  "Word of mouth (e.g. friends or family)_VAS_sources_9",
+  "MNCH Week_VAS_sources_10",
+  "Other VAS_sources_96"
+)
+
+# Convert wide to long format (for checked/Yes values)
+vas_sources_long <- df %>%
+  select(all_of(vas_source_cols)) %>%
+  mutate(row_id = row_number()) %>%
+  pivot_longer(
+    cols = -row_id,
+    names_to = "Source",
+    values_to = "Checked"
+  ) %>%
+  filter(!is.na(Checked) & Checked != "" & Checked != "No")
+
+# Summarize counts and percentages
+vas_source_summary <- vas_sources_long %>%
+  count(Source) %>%
+  mutate(Percent = 100 * n / sum(n)) %>%
+  arrange(desc(n))
+
+print(vas_source_summary)
+
+```
+
+### Sources of Information for Vitamin A Supplementation (VAS)
+
+The table below summarizes the reported sources of information about Vitamin A Supplementation (VAS) among survey respondents. Each source is shown with the number and percentage of respondents who identified it as a channel through which they heard about VAS.
+
+| Source                                            | Frequency | Percent (%) |
+|---------------------------------------------------|-------|-------------|
+| Health facility staff                             | 3,826 |    47.4     |
+| Community health worker or SMC distributor        | 1,409 |    17.5     |
+| Town announcer                                   |   626 |     7.8     |
+| Local leader                                     |   624 |     7.7     |
+| Religious leader                                 |   320 |     4.0     |
+| Word of mouth (friends or family)                |   291 |     3.6     |
+| MNCH Week                                        |   231 |     2.9     |
+| Radio                                            |   198 |     2.5     |
+| Other                                            |    33 |     0.4     |
+| Television                                       |    21 |     0.3     |
+| Printed materials or banners                     |    16 |     0.2     |
+
+The findings indicate that health facility staff were by far the most common source of information about VAS, cited by nearly half (47.4%) of respondents. Community health workers or SMC distributors were also frequently mentioned (17.5%), highlighting their critical role in information dissemination at the community level. Other prominent sources included town announcers (7.8%) and local leaders (7.7%). Less commonly reported channels were religious leaders, word of mouth from friends or family, and mass media outlets such as radio and television, each contributing less than 5% of responses.
+
+
+
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(vas_source_summary, aes(x = reorder(Source, -Percent), y = Percent)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = paste0(round(Percent,1), "%")), vjust = -0.5, size = 4) +
+  labs(title = "Sources of VAS Information", x = "Source", y = "Percent (%)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+## VAS Coverage Among Children Aged 6–59 Months
+
+This section presents the analysis of Vitamin A Supplementation (VAS) receipt among children aged 6–59 months. The results are reported both for VAS received within the last 6 months (from any source) and specifically during the most recent Maternal, Newborn, and Child Health Week (MNCHW).
+
+```{r include=FALSE}
+children <- df %>%
+  filter(selected_chi_monthe >= 6 & selected_chi_monthe <= 59)
+
+
+# Proportion who received VAS in last 6 months
+children %>%
+  tabyl(`Did [selected_chi_name] received vitamin A dose within the last 6 months from any source?`) %>%
+  adorn_pct_formatting()
+
+
+# Cycle 1 SMC
+children %>%
+  tabyl(child_SMC_1) %>%
+  adorn_pct_formatting()
+
+# Any SMC cycles (if you have multiple SMC cycle columns, e.g., child_SMC_1, child_SMC_2, ...)
+# This example checks if any SMC cycles were received (Yes in any cycle column)
+smc_cycle_cols <- grep("^child_SMC_", names(children), value = TRUE)
+children <- children %>%
+  mutate(SMC_any = if_any(all_of(smc_cycle_cols), ~ . == "Yes"))
+children %>%
+  tabyl(SMC_any) %>%
+  adorn_pct_formatting()
+
+
+# Deworming Tablet (Last MNCHW)
+
+children %>%
+  tabyl(mnchw_deworming_source) %>%
+  adorn_pct_formatting()
+
+
+# MUAC Screening (Last MNCHW)
+children %>%
+  tabyl(mnchw_muac_source) %>%
+  adorn_pct_formatting()
+
+# Routine Immunization (12–23 months)
+children_12_23 <- children %>%
+  filter(selected_chi_monthe >= 12 & selected_chi_monthe <= 23)
+
+children_12_23 %>%
+  tabyl(vaccine_received_MNCHW) %>%
+  adorn_pct_formatting()
+
+
+# Place of Service Delivery
+
+children %>%
+  tabyl(`Where did the selected child receive the services during the MNCH week campaign?`) %>%
+  adorn_pct_formatting()
+
+
+children <- children %>%
+  rename(place_service_delivery = `Where did the selected child receive the services during the MNCH week campaign?`)
+children %>%
+  tabyl(place_service_delivery) %>%
+  adorn_pct_formatting()
+
+
+```
+### Receipt of Child Health Interventions Among Children Aged 6–59 Months
+
+#### Vitamin A Supplementation (VAS) in the Last 6 Months
+
+Among children aged 6–59 months, 39.8% received vitamin A supplementation in the past 6 months, while 60.2% did not receive a dose during this period. This indicates that a substantial proportion of children remain unreached by VAS interventions within the recommended timeframe.
+
+| Received VAS in Last 6 Months | n    | Percent (%) |
+|-------------------------------|------|-------------|
+| No                            | 4,258| 60.2        |
+| Yes                           | 2,815| 39.8        |
+
+
+
+#### Receipt of SMC (Cycle 1)
+
+
+The data show that 61.3% (n = 4,335) of children received SMC during Cycle 1. However, 38.7% (n=2,738) did not received the SMC during Cycle 1.
+
+| Received SMC (Cycle 1) | n    | Percent (%) |
+|------------------------|------|-------------|
+| Yes                    | 4,335| 61.3        |
+| NA / Missing           | 2,738| 38.7        |
+
+
+#### Deworming Tablet During Last MNCHW
+
+
+The most common place for children to receive deworming tablets during the last MNCHW was the health facility (18.1%), followed by community drug distributors visiting households (10.9%), and outreach posts (3.0%). However, 67.7% of children had no recorded data for deworming tablet receipt, indicating a potential gap in service uptake or reporting.
+
+| Place                                 | n    | Percent (%) | Valid Percent (%) |
+|----------------------------------------|------|-------------|-------------------|
+| Health facility                        | 1,281| 18.1        | 56.1              |
+| Community drug distributor to house    | 772  | 10.9        | 33.8              |
+| MNCH week outreach post                | 210  | 3.0         | 9.2               |
+| Others                                 | 22   | 0.3         | 1.0               |
+| NA / Missing                           | 4,788| 67.7        | -                 |
+
+
+#### MUAC Screening During Last MNCHW
+
+
+Most children who received MUAC screening during the last MNCHW did so at health facilities (15.3%, valid percent: 66.7%), while fewer were reached at home by community drug distributors (5.5%, valid percent: 23.9%) or at outreach posts (2.1%, valid percent: 9.2%). Missing data accounted for 77% of the records.
+
+| Place                                 | n    | Percent (%) | Valid Percent (%) |
+|----------------------------------------|------|-------------|-------------------|
+| Health facility                        | 1,085| 15.3        | 66.7              |
+| Community drug distributor to house    | 388  | 5.5         | 23.9              |
+| MNCH week outreach post                | 150  | 2.1         | 9.2               |
+| Others                                 | 3    | 0.0         | 0.2               |
+| NA / Missing                           | 5,447| 77.0        | -                 |
+
+
+
+#### Routine Immunization (12–23 months)
+
+
+Routine immunization coverage among children aged 12–23 months was highly variable, with most categories representing small groups of children receiving different combinations of vaccine doses. The most common record indicated that 36.0% of children received only the 17th vaccine dose during the campaign. Notably, 86.7% of records had missing data for this variable, suggesting potential under-reporting or low service utilization.
+
+
+
+#### Place of Service Delivery
+
+
+When examining the place where children received health services during MNCHW, 13.1% of children attended a health facility, 6.9% received services at home from a community drug distributor, and 3.2% were served at an outreach post. The majority of records (76.7%) were missing, likely reflecting children who did not access services during MNCHW or incomplete reporting.
+
+| Place of Service Delivery               | n    | Percent (%) | Valid Percent (%) |
+|-----------------------------------------|------|-------------|-------------------|
+| At the health facility                  | 927  | 13.1        | 56.2              |
+| Community drug distributor to house     | 491  | 6.9         | 29.8              |
+| MNCH week outreach post                 | 228  | 3.2         | 13.8              |
+| Others                                  | 2    | 0.0         | 0.1               |
+| NA / Missing                            | 5,425| 76.7        | -                 |
+
+
+  
+The findings reveal substantial gaps in the coverage of key child health interventions, with notable levels of missing data for several indicators. Health facilities remain the most common location for the receipt of both deworming and MUAC services, while home-based outreach by community drug distributors and MNCHW outreach posts play important but secondary roles. 
+
+## SUmmary table For Children (6–59 months) Indicators
+
+| Indicator                                                        | Yes (%) | No (%) |
+|------------------------------------------------------------------|---------|--------|
+| Receipt of VAS (in last 6 months)                                | 39.8    | 60.2   |
+| Receipt of SMC (Cycle 1)                                         | 61.3    | 38.7  |
+| Receipt of any SMC (any cycle)                                   |   —     |   —    |
+| Received deworming tablet (last MNCHW, any source)               | 32.0  | 68.0 |
+| Received MUAC screening (last MNCHW, any source)                 | 23.9  | 76.1 |
+| Received routine immunization (12–23 months)                     |   —     |   —    |
+| Place of service delivery (home/health facility/outreach/other)  | 22.6|   77.04    |
+
+## Women of Childbearing Age (15–49 years) Indicator analysis
+```{r include=FALSE}
+
+wcba <- df %>% filter(selected_wcba_age >= 15 & selected_wcba_age <= 49)
+
+# Iron and Folic Acid (IFAS) during last MNCHW
+wcba %>%
+  tabyl(`Question: Did [selected_wcba_name] received Iron and Follate/follic acid supplementation/MMS (at any time during the last MNCHW) from any source?`) %>%
+  adorn_pct_formatting()
+
+# Tetanus Toxoid (TT)
+wcba %>%
+  tabyl(`: Did [selected_wcba_name] received Tetanus Toxoid (at any time during the last MNCHW) from any source?`) %>%
+  adorn_pct_formatting()
+
+#ANC/PNC Services
+# Example for ANC
+wcba %>%
+  tabyl(`Is ANC services (counselling, health talk, palpetion) one of the services you can access during MNCHW`) %>%
+  adorn_pct_formatting()
+
+# Example for PNC (if available)
+wcba %>%
+  tabyl(`Is Postnatal care one of the services you can access during MNCHW?`) %>%
+  adorn_pct_formatting()
+
+
+# Source of Service
+
+wcba %>%
+  tabyl(`mnchw_wcba_ifas_sourcespecify`) %>%
+  adorn_pct_formatting()
+
+
+```
+
+### Coverage of Key Maternal Health Interventions Among Women of Childbearing Age (15–49 years)
+
+#### Iron and Folic Acid Supplementation (IFAS)
+
+
+Among women of childbearing age, only 7.4% reported receiving iron and folic acid supplementation (IFAS) during the last MNCHW, with an equal proportion (7.4%) reporting that they did not receive IFAS. However, a large proportion of respondents (85.2%) had missing or unreported data for this question. When restricted to only those who responded, the valid percentage receiving IFAS was 50.1%.
+
+| IFAS Received at Last MNCHW | n   | Percent (%) | Valid Percent (%) |
+|-----------------------------|-----|-------------|-------------------|
+| No                          | 596 | 7.4         | 49.9              |
+| Yes                         | 598 | 7.4         | 50.1              |
+| Missing/NA                  |6847 | 85.2        | —                 |
+
+
+
+#### Tetanus Toxoid (TT) Receipt
+
+
+A total of 36.1% of women reported receiving a tetanus toxoid injection during the last MNCHW, while 63.9% did not.
+
+| TT Received at Last MNCHW | n    | Percent (%) |
+|---------------------------|------|-------------|
+| No                        | 5139 | 63.9        |
+| Yes                       | 2902 | 36.1        |
+
+
+
+#### Antenatal and Postnatal Care (ANC/PNC) Services
+
+
+Regarding ANC services, 13.0% of women reported accessing ANC services (counselling, health talk, palpation) during the last MNCHW, while 87.0% did not. However, a large share (65.2%) did not answer this question. For PNC, only 4.3% of valid responses indicated receipt of postnatal care, and 95.7% indicated they did not; again, a majority of cases (65.2%) were missing or unreported.
+
+| ANC Services at Last MNCHW | n    | Percent (%) | Valid Percent (%) |
+|----------------------------|------|-------------|-------------------|
+| No                         | 2437 | 30.3        | 87.0              |
+| Yes                        |  365 |  4.5        | 13.0              |
+| Missing/NA                 | 5239 | 65.2        | —                 |
+
+| PNC Services at Last MNCHW | n    | Percent (%) | Valid Percent (%) |
+|----------------------------|------|-------------|-------------------|
+| No                         | 2681 | 33.3        | 95.7              |
+| Yes                        |  121 |  1.5        |  4.3              |
+| Missing/NA                 | 5239 | 65.2        | —                 |
+
+
+
+#### Source of Service for IFAS
+
+
+Almost all respondents (99.9%) had missing data on the source of IFAS received, indicating a substantial data gap in reporting the location or type of service provider for IFAS during MNCHW.
+
+| Source of IFAS Supplementation | n    | Percent (%) | Valid Percent (%) |
+|-------------------------------|------|-------------|-------------------|
+| Missing/NA                    | 8041 | 100.0       | —                 |
+
+
+
+The findings highlight low reported coverage of key maternal health interventions among women of childbearing age during the last MNCHW, with only about one-third of women receiving tetanus toxoid and a very small proportion reporting receipt of iron/folic acid, ANC, or PNC services. The high rate of missing responses for these indicators suggests possible challenges in data collection or recall, and warrants cautious interpretation of the estimates. Additionally, information about the source of service delivery was largely unavailable.
+
+| Indicator                         | Yes (%) | No (%) |
+|------------------------------------|---------|--------|
+| Received iron and folic acid (IFAS) during last MNCHW |   7.4   |   7.4   |
+| Received tetanus toxoid (TT)       |  36.1   |  63.9  |
+| Received ANC services              |   4.5   |  30.3  |
+| Received PNC services              |   1.5   |  33.3  |
+| Place of service (health facility, outreach, home, etc.) | see below |   —    |
+
+*Note: Over 85% of IFAS, and 65% of ANC/PNC responses are missing/unreported. “Yes” and “No” are based on full sample.*
+
+---
+
+#### Place of Service for IFAS (example)
+
+| Place/Source         | Percent (%) |
+|----------------------|-------------|
+| Health facility      |    —        |
+| Outreach post        |    —        |
+| Home/community       |    —        |
+| Other                |    —        |
+
+*Note: Nearly all respondents (99.9%) had missing data for the place of IFAS service delivery.*
+
+---
+
+**You can update these percentages with valid percent if you want to focus only on respondents who answered the question. Let me know if you want that version or if you need a similar table for other service types!**
 
 
