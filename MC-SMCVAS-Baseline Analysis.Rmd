@@ -1,10 +1,15 @@
 ---
-title: "MC_SMCVAS Baseline Analysis"
-author: "AbdulHafiz Abba"
-date: "2025-06-17"
-output: pdf_document
-
+title: "MC SMCVAS Baseline Analysis"
+output:
+  pdf_document:
+    keep_tex: false
+    fig_caption: false
+    number_sections: false
+    toc: false
+    highlight: tango
+    latex_engine: pdflatex
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -20,6 +25,7 @@ library(scales)
 library(janitor)
 library(vcd)        # for assocstats() and Cramér’s V
 library(rcompanion) # for cramerV()
+
 
 ```
 ## Demographic Profile of Respondents
@@ -1033,7 +1039,7 @@ When examining the place where children received health services during MNCHW, 1
   
 The findings reveal substantial gaps in the coverage of key child health interventions, with notable levels of missing data for several indicators. Health facilities remain the most common location for the receipt of both deworming and MUAC services, while home-based outreach by community drug distributors and MNCHW outreach posts play important but secondary roles. 
 
-## SUmmary table For Children (6–59 months) Indicators
+**SUmmary table For Children (6–59 months) Indicators**
 
 | Indicator                                                        | Yes (%) | No (%) |
 |------------------------------------------------------------------|---------|--------|
@@ -1140,31 +1146,452 @@ Almost all respondents (99.9%) had missing data on the source of IFAS received, 
 
 The findings highlight low reported coverage of key maternal health interventions among women of childbearing age during the last MNCHW, with only about one-third of women receiving tetanus toxoid and a very small proportion reporting receipt of iron/folic acid, ANC, or PNC services. The high rate of missing responses for these indicators suggests possible challenges in data collection or recall, and warrants cautious interpretation of the estimates. Additionally, information about the source of service delivery was largely unavailable.
 
+**SUmmary table For Indicators for Women of Childbearing Age (15–49 years**
+
 | Indicator                         | Yes (%) | No (%) |
 |------------------------------------|---------|--------|
 | Received iron and folic acid (IFAS) during last MNCHW |   7.4   |   7.4   |
 | Received tetanus toxoid (TT)       |  36.1   |  63.9  |
 | Received ANC services              |   4.5   |  30.3  |
 | Received PNC services              |   1.5   |  33.3  |
-| Place of service (health facility, outreach, home, etc.) | see below |   —    |
 
-*Note: Over 85% of IFAS, and 65% of ANC/PNC responses are missing/unreported. “Yes” and “No” are based on full sample.*
 
----
+# Section 2: Primary Indicators by Research Objective
 
-#### Place of Service for IFAS (example)
+## Objective 1: Effect of Integrating VAS with SMC on Uptake of MNCHW Interventions
 
-| Place/Source         | Percent (%) |
-|----------------------|-------------|
-| Health facility      |    —        |
-| Outreach post        |    —        |
-| Home/community       |    —        |
-| Other                |    —        |
+This section presents the coverage of core MNCHW interventions among the target groups, reporting on both children aged 6–59 months and women of childbearing age (15–49 years).
 
-*Note: Nearly all respondents (99.9%) had missing data for the place of IFAS service delivery.*
+### 1. Children Aged 6–59 Months
 
----
+#### a) Coverage of Deworming (Albendazole)
 
-**You can update these percentages with valid percent if you want to focus only on respondents who answered the question. Let me know if you want that version or if you need a similar table for other service types!**
+During the last MNCHW campaign, **32.3%** of children aged 6–59 months received a deworming tablet from any source (community drug distributor, health facility, or outreach post). However, **67.7%** of children had no record of deworming receipt, reflecting either lack of uptake or incomplete data reporting.
+
+| Deworming during last MNCHW | Frequency    | Percent (%) |
+|-----------------------------|------|-------------|
+| Yes (any source)            | 2,285| 32.3        |
+| No/Not recorded             | 4,788| 67.7        |
+
+```{r include=FALSE}
+df <- df %>%
+  mutate(
+    Deworming_coverage = ifelse(
+      mnchw_deworming_source %in% c("At the health facility", "A Community Drug Distributor came to house", "MNCH week outreach post", "Others"),
+      1, 0
+    )
+  )
+```
+```{r include=FALSE}
+deworming_by_lga <- df %>%
+  group_by(LGA) %>%
+  summarize(
+    Deworming_Coverage = mean(Deworming_coverage, na.rm = TRUE),
+    n = n()
+  ) %>%
+  arrange(desc(Deworming_Coverage))
+
+print(deworming_by_lga)
+
+```
+```{r echo=FALSE}
+
+ggplot(deworming_by_lga, aes(x = reorder(LGA, -Deworming_Coverage), y = Deworming_Coverage)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = percent(Deworming_Coverage, accuracy = 1)), vjust = -0.5, size = 4) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Albendazole (Deworming) Coverage by LGA",
+    x = "LGA",
+    y = "Coverage (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+```{r include=FALSE}
+# Table of Deworming_coverage by LGA
+tab <- table(df$LGA, df$Deworming_coverage)
+chi_deworm_lga <- chisq.test(tab)
+print(chi_deworm_lga)
+
+
+cramerV(tab)
+
+```
+#### Coverage of Albendazole (Deworming) by LGA
+
+The table below summarizes the proportion of children who received Albendazole (deworming) during the last MNCHW campaign, disaggregated by Local Government Area (LGA):
+
+| LGA            | Deworming Coverage (%) | Frequency   |
+|----------------|-----------------------|-----|
+| Alkaleri       | 35.7                  | 499 |
+| Warji          | 31.7                  | 325 |
+| DAMBAM         | 31.7                  | 398 |
+| Tafawa-Balewa  | 31.5                  | 400 |
+| Ningi          | 26.8                  | 400 |
+| Gamawa         | 23.6                  | 449 |
+| Zaki           | 21.3                  | 450 |
+| Shira          | 21.3                  | 474 |
+| Jama'are       | 17.2                  | 325 |
+| Katagum        | 11.4                  | 501 |
+| Darazo         | 56.9                  | 418 |
+| Bogoro         | 41.8                  | 325 |
+| Bauchi         | 41.4                  | 502 |
+| Misau          | 41.3                  | 400 |
+| Ganjuwa        | 39.8                  | 400 |
+| Kirfi          | 39.3                  | 323 |
+| Toro           | 38.1                  | 425 |
+| Itas/Gadau     | 37.3                  | 400 |
+| Dass           | 36.6                  | 325 |
+| Giade          | 35.7                  | 325 |
+
+The findings demonstrate marked variation in deworming coverage across LGAs. Coverage ranged from a high of 56.9% in Darazo to a low of 11.4% in Katagum. Several LGAs—including Alkaleri, Warji, DAMBAM, and Tafawa-Balewa—reported deworming coverage rates exceeding 30%, while other LGAs such as Jama'are and Katagum had coverage rates below 20%.
+
+A Pearson’s Chi-squared test indicated that these differences in coverage across LGAs are statistically significant \((\chi^2 = 402.38,\, df = 19,\, p < 2.2 \times 10^{-16})\). The Cramér’s V statistic was 0.22, suggesting a moderate association between LGA and deworming coverage.
+
+
+
+#### b) Coverage of Routine Immunization (Children 12–23 Months)
+
+Routine immunization coverage during the last MNCHW among children aged 12–23 months was very low, with most children either lacking valid records or receiving only a limited combination of vaccines during the campaign. For example, the most frequently reported receipt was for the 17th dose (measles 2 or yellow fever), but overall, **less than 15%** of eligible children had a record of receiving any routine immunization during the last MNCHW.
+
+
+
+#### c) Coverage of MUAC Screening
+
+Coverage for MUAC (Mid-Upper Arm Circumference) screening during the last MNCHW was **23.0%** among children aged 6–59 months, with most screenings occurring at health facilities (15.3% of all children, or 66.7% of valid responses). Home and outreach screening rates were much lower. Data were missing for approximately 77% of children.
+
+| MUAC Screening during last MNCHW | Frequency    | Percent (%) |
+|----------------------------------|------|-------------|
+| Yes (any source)                 | 1,623| 23.0        |
+| No/Not recorded                  | 5,447| 77.0        |
+
+### Coverage of MUAC Screening by LGA
+
+The table below presents the coverage of MUAC (Mid-Upper Arm Circumference) screening among children during the last MNCHW campaign, disaggregated by Local Government Area (LGA):
+
+| LGA            | MUAC Coverage (%) | n   |
+|----------------|------------------|-----|
+| Darazo         | 51.4             | 418 |
+| Bauchi         | 41.6             | 502 |
+| Toro           | 33.4             | 425 |
+| Misau          | 30.8             | 400 |
+| Kirfi          | 30.7             | 323 |
+| Dass           | 27.7             | 325 |
+| Alkaleri       | 26.5             | 499 |
+| Tafawa-Balewa  | 25.3             | 400 |
+| Warji          | 24.9             | 325 |
+| Giade          | 22.8             | 325 |
+| Bogoro         | 22.2             | 325 |
+| DAMBAM         | 22.1             | 398 |
+| Zaki           | 17.3             | 450 |
+| Ganjuwa        | 15.3             | 400 |
+| Shira          | 14.8             | 474 |
+| Ningi          | 14.0             | 400 |
+| Jama'are       | 12.9             | 325 |
+| Itas/Gadau     | 9.8              | 400 |
+| Katagum        | 7.0              | 501 |
+| Gamawa         | 5.1              | 449 |
+
+There is substantial variation in MUAC screening coverage across LGAs. Darazo (51.4%) and Bauchi (41.6%) achieved the highest coverage rates, while Katagum (7.0%) and Gamawa (5.1%) reported the lowest.
+
+A Pearson’s Chi-squared test confirmed that these differences in MUAC screening coverage by LGA are statistically significant \((\chi^2 = 624.52,\, df = 19,\, p < 2.2 \times 10^{-16})\). The Cramér’s V statistic was 0.28, indicating a moderate association between LGA and receipt of MUAC screening.
+
+
+```{r include=FALSE}
+# Create a binary MUAC coverage variable
+df <- df %>%
+  mutate(
+    MUAC_coverage = ifelse(
+      mnchw_muac_source %in% c(
+        "At the health facility",
+        "A Community Drug Distributor came to house",
+        "MNCH week outreach post",
+        "Others"
+      ),
+      1, 0
+    )
+  )
+
+```
+```{r include=FALSE}
+muac_by_lga <- df %>%
+  group_by(LGA) %>%
+  summarize(
+    MUAC_Coverage = mean(MUAC_coverage, na.rm = TRUE),
+    n = n()
+  ) %>%
+  arrange(desc(MUAC_Coverage))
+
+print(muac_by_lga)
+
+```
+```{r echo=FALSE}
+
+ggplot(muac_by_lga, aes(x = reorder(LGA, -MUAC_Coverage), y = MUAC_Coverage)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = percent(MUAC_Coverage, accuracy = 1)), vjust = -0.5, size = 4) +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "MUAC Screening Coverage by LGA",
+    x = "LGA",
+    y = "Coverage (%)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+```{r include=FALSE}
+tab_muac <- table(df$LGA, df$MUAC_coverage)
+chi_muac_lga <- chisq.test(tab_muac)
+print(chi_muac_lga)
+
+cramerV(tab_muac)
+
+
+```
+
+
+
+### 2. Women of Childbearing Age (15–49 years)
+
+#### a) Coverage of Iron and Folic Acid Supplementation (IFAS)
+Coverage of IFAS among eligible women during the last MNCHW was extremely low, with only **7.4%** reporting receipt, **7.4%** reporting not receiving, and the vast majority (**85.2%**) not answering. Among those who responded, valid coverage was 50.1%.
+
+| IFAS Received at Last MNCHW | Frequency   | Percent (%) | Valid Percent (%) |
+|-----------------------------|-----|-------------|-------------------|
+| Yes                         | 598 | 7.4         | 50.1              |
+| No                          | 596 | 7.4         | 49.9              |
+| Missing/NA                  |6847 | 85.2        | —                 |
+
+
+
+#### b) Coverage of Tetanus Toxoid (TT)
+A total of **36.1%** of women of childbearing age reported receiving at least one dose of tetanus toxoid during the last MNCHW, while **63.9%** did not.
+
+| TT Received at Last MNCHW | Frequency    | Percent (%) |
+|---------------------------|------|-------------|
+| Yes                       | 2,902| 36.1        |
+| No                        | 5,139| 63.9        |
+
+
+# Objective 2: Perceptions of the Effect of Removing VAS from MNCHW on Demand and Uptake
+
+This section assesses only the quantitative evidence regarding the perceived impact of removing Vitamin A Supplementation (VAS) from Maternal, Newborn, and Child Health Weeks (MNCHW) on the demand for, and uptake of, MNCHW interventions.
+
+## 2.1 Caregiver Knowledge and Perceptions
+
+### Awareness of MNCHW, SMC, and VAS
+
+| Indicator                          | Aware (%) | Not Aware (%) |
+|-------------------------------------|-----------|---------------|
+| MNCHW                              | 34.0      | 66.0          |
+| SMC                                | --        | --            |
+| VAS                                | 68.4      | 31.6          |
+
+*Note: SMC awareness was not captured during the survey.*
+
+Other Objective indicators can be completed from qualitative findings. 
+
+
+# Objective 3: Coverage of Vitamin A Supplementation Following Integration with SMC
+
+This section summarizes the coverage of Vitamin A Supplementation (VAS) among children aged 6–59 months, following the integration of VAS with SMC campaigns. Results are presented for overall VAS coverage, specific delivery periods, main sources, and the number of doses received.
+
+
+
+## 3.1 Overall VAS Coverage in the Last 6 Months
+
+```{r include=FALSE}
+
+# Filter for eligible children
+children <- df %>%
+  filter(selected_chi_monthe >= 6 & selected_chi_monthe <= 59)
+
+children %>%
+  tabyl(`Did [selected_chi_name] received vitamin A dose within the last 6 months from any source?`) %>%
+  adorn_pct_formatting()
+
+
+```
+
+
+Among children aged 6–59 months, **39.8%** received at least one dose of vitamin A in the last 6 months, while **60.2%** did not.
+
+| Received VAS in Last 6 Months | n    | Percent (%) |
+|-------------------------------|------|-------------|
+| Yes                           | 2,815| 39.8        |
+| No                            | 4,258| 60.2        |
+
+
+
+We cannot ascertain *"VAS Coverage During Last MNCHW Campaign" and "VAS Coverage During Integrated SMC+VAS Campaign"* as this was not captured during the baseline survey. 
+VAS Coverage During Integrated SMC+VAS Campaign
+
+
+## 3.4 Main Source of VAS
+
+```{r include=FALSE}
+children <- df %>%
+  filter(selected_chi_monthe >= 6 & selected_chi_monthe <= 59)
+
+# Stack all dose source columns into one long column
+dose_sources <- children %>%
+  select(
+    `Where did [selected_chi_name] receive it"dose_1`,
+    `Where did [selected_chi_name] receive it"dose_2`,
+    `Where did [selected_chi_name] receive it_3`,
+    `Where did [selected_chi_name] receive it dose_4`
+  ) %>%
+  pivot_longer(everything(), names_to = "dose", values_to = "source") %>%
+  filter(!is.na(source) & source != "")   # Remove missing/blank
+
+# Tabulate main sources
+dose_sources %>%
+  count(source) %>%
+  mutate(Percent = 100 * n / sum(n)) %>%
+  arrange(desc(n))
+
+```
+
+The table below summarizes the primary reported sources of VAS among eligible children.
+
+| Main Source                                   | Frequency    | Percent (%) |
+|-----------------------------------------------|------|-------------|
+| At the health facility                        | 1,842|   55.5      |
+| A Community Drug Distributor came to house    | 1,113|   33.6      |
+| MNCH week fixed outreach post                 |  335 |   10.1      |
+| Other                                         |   19 |    0.6      |
+| Others                                        |    8 |    0.2      |
+
+
+Over half (55.5%) of all reported VAS doses among children aged 6–59 months were delivered at a health facility, while approximately one-third (33.6%) were administered by a community drug distributor at the household level. Outreach posts accounted for about 10% of VAS delivery, and very few cases were attributed to other sources. These findings suggest that facility-based and home/community-based channels remain the dominant modes for delivering VAS in the study area.
+
+
+## 3.5 Number of VAS Doses Received in the Last 6 Months
+
+```{r include=FALSE}
+children <- df %>%
+  filter(selected_chi_monthe >= 6 & selected_chi_monthe <= 59) %>%
+  mutate(VAS_Dose_count = as.numeric(VAS_Dose_count))
+
+
+children %>%
+  tabyl(VAS_Dose_count) %>%
+  adorn_pct_formatting()
+
+
+```
+
+The table below presents the distribution of the number of vitamin A doses received by children aged 6–59 months within the last six months.
+
+| Number of Doses | n    | Percent (%) | Valid Percent (%) |
+|-----------------|------|-------------|-------------------|
+| 1               | 2,373|   33.6      |    84.3           |
+| 2               |   380|    5.4      |    13.5           |
+| 3               |    57|    0.8      |     2.0           |
+| 4               |     5|    0.1      |     0.2           |
+| NA (Missing)    | 4,258|   60.2      |      —            |
+
+
+
+Approximately one-third (33.6%) of children received one VAS dose in the last six months, while only 5.4% received two doses, and less than 1% received three or more doses. Notably, 60.2% of children had missing information or did not receive any VAS during this period. Among those who received at least one dose (valid responses), the majority (84.3%) had only one dose, and only a small fraction received multiple doses.
+
+
+# Objective 4: To Monitor the Coverage and Quality of SMC Following Integration with VAS
+
+## A. SMC Coverage Indicators
+
+###  % of Eligible Children Who Received at Least One Dose of SMC (Day 1)
+
+```{r include=FALSE}
+# Filter for eligible children (Day 1)
+eligible_children <- df %>%
+  filter(`Child_1_Eligibility check` == "Eligible for SMC & VAS" | `Child_1_Eligibility check` == "Eligible for SMC only")
+
+# Calculate SMC coverage (Day 1)
+eligible_children %>%
+  tabyl(child_SMC_1) %>%
+  adorn_pct_formatting()
+
+```
+Among all eligible children, coverage of SMC for at least one Day (1) was extremely high. Specifically, 97.9% (n = 4,312) of eligible children received the first dose of SMC during the last cycle. Only a small proportion (2.1%, n = 92) had missing information or did not receive the dose.
+
+###  % Who Received SMC Under Direct Observation by CDDs
+```{r include=FALSE}
+df %>%
+  tabyl(status_treatment) %>%
+  adorn_pct_formatting()
+
+```
+No data were available to assess the proportion of children who received SMC under direct observation by community drug distributors (CDDs). 
+
+
+##  SMC Quality Indicators
+
+### % Reporting Adverse Events Following SMC and/or VAS 
+```{r include=FALSE}
+df %>%
+  tabyl(adverse_reactions) %>%
+  adorn_pct_formatting()
+
+df %>%
+  tabyl(adverse_type) %>%
+  adorn_pct_formatting()
+
+
+```
+No information was available regarding adverse events following SMC or VAS administration. Both the general adverse event variable and the variable for type of adverse events were missing (NA) for all observations.
+
+###  % of Children Who Completed All SMC Doses (Days 1, 2, 3)
+
+```{r include=FALSE}
+df %>%
+  mutate(smc_complete = ifelse(!is.na(satisfied_day1) & !is.na(dose2) & !is.na(dose3), "Completed", "Incomplete")) %>%
+  tabyl(smc_complete) %>%
+  adorn_pct_formatting()
+
+```
+None of the surveyed children had complete data for all three SMC doses (Days 1, 2, and 3), as 100% were classified as "Incomplete." 
+
+### % of Households Reporting Satisfaction with SMC+VAS Delivery
+
+```{r include=FALSE}
+df %>%
+  tabyl(satisfied_with_services) %>%
+  adorn_pct_formatting()
+
+```
+Caregiver satisfaction was relatively high among those who responded, with 97.8% (n = 1,859) expressing satisfaction with the delivery of services. Only 2.2% (n = 41) were dissatisfied. However, it is notable that this information was missing for 76.4% (n = 6,164) of surveyed households.
+
+### % of Children with SMC/VAS Documentation (Health Card, Sticker, etc.)
+
+```{r include=FALSE}
+df %>%
+  tabyl(`Does [selected_chi_name] have a Child Health Card?`) %>%
+  adorn_pct_formatting()
+
+df %>%
+  tabyl(`Does [selected_chi_name] have a Vitamin A Sticker on their SMC Card?`) %>%
+  adorn_pct_formatting()
+
+```
+Over half of the children (52.9%, n = 4,263) had a child health card available, while 47.1% (n = 3,801) did not. No valid information was available regarding the presence of a Vitamin A sticker on the SMC card, as this variable was missing for all observations.
+
+
+#### Summary Table
+
+| Indicator                                   | Yes (%)   | No (%)    |
+|----------------------------------------------|-----------|-----------|
+| SMC coverage (at least 1 dose, eligible children)      | 97.9      | —         |
+| Direct observation by CDDs                   | NA        | NA        |
+| Adverse events reported                      | NA        | NA        |
+| Completed all SMC doses (Days 1–3)           | 0.0       | 100.0     |
+| Caregiver satisfied with SMC+VAS delivery    | 97.8      | 2.2       |
+| Child has health card                        | 52.9      | 47.1      |
+| Vitamin A sticker on SMC card                | NA        | NA        |
+
+
 
 
