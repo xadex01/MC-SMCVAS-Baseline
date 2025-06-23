@@ -1,13 +1,22 @@
 ---
-title: "MC SMCVAS Baseline Analysis"
+title: "**MC SMC+VAS Baseline Analysis**  \n*Bauchi State, Nigeria – 2025*\n"
+author: "Malaria Consortium"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
+  word_document:
+    toc: true
+    toc_depth: '2'
   pdf_document:
-    keep_tex: false
-    fig_caption: false
-    number_sections: false
-    toc: false
-    highlight: tango
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    fig_caption: true
     latex_engine: pdflatex
+    highlight: tango
+    keep_tex: true
+fontsize: 11pt
+documentclass: report
+geometry: margin=1in
 ---
 
 
@@ -28,9 +37,117 @@ library(rcompanion) # for cramerV()
 
 
 ```
+
+# Introduction
+
+Malaria Consortium is one of the world’s leading non-profit organizations specializing in the prevention, control, and treatment of malaria and other communicable diseases among vulnerable populations across Africa and Asia. In Nigeria, the organization is at the forefront of supporting the delivery of high-impact child survival interventions such as **Seasonal Malaria Chemoprevention (SMC)** and **Vitamin A Supplementation (VAS)**, both proven strategies for reducing morbidity and mortality among children under five years of age.
+
+Despite national guidelines recommending biannual high-dose VAS for children 6–59 months, VAS coverage in Nigeria remains suboptimal, with national estimates at just 45% (NDHS 2018), compared to the high coverage typically achieved by SMC campaigns (often >95%). The periodic **Maternal, Newborn and Child Health Week (MNCHW)** campaigns serve as the main platform for delivering VAS and other key health and nutrition interventions; however, significant gaps in coverage persist, especially among hard-to-reach children.
+
+In response to these challenges, and building on evidence from implementation research conducted in Sokoto and Bauchi States, Malaria Consortium, with support from GiveWell—has launched a large-scale evaluation to assess the **effectiveness and impact of integrating VAS delivery into SMC campaigns** in Bauchi and Niger states. This innovative approach aims to leverage the high reach and acceptability of SMC campaigns to improve the uptake of VAS, using a door-to-door delivery model. The strategy also involves removing VAS from the MNCHW package during the first biannual campaign of 2025, to prevent duplication and assess potential effects on the uptake of other MNCHW interventions.
+
+The present baseline survey, conducted in April 2025 in Bauchi State, is part of a convergent mixed-methods evaluation designed to measure:
+
+- The effectiveness (coverage and quality) of VAS co-implementation with SMC at scale;
+- Whether integrating VAS with SMC affects the coverage and uptake of other key MNCHW interventions;
+- Health worker and policy maker perceptions regarding the integration and any unintended effects on service demand.
+
+The study targets children under five years old (with eligibility criteria specified for both SMC and VAS), as well as female caregivers of childbearing age (15–49 years) in sampled households across Bauchi State. The evidence generated will inform national policy and provide operational lessons for the scale-up of integrated child survival campaigns in Nigeria and beyond.
+
+# Study Objectives
+
+## Aim of the Study
+
+The overarching aim of this baseline evaluation is to generate robust empirical evidence regarding the effectiveness, operational feasibility, and community acceptability of integrating **Vitamin A Supplementation (VAS)** into **Seasonal Malaria Chemoprevention (SMC)** campaigns in Bauchi State, Nigeria. The findings of this study are intended to inform national and sub-national policy decisions, as well as contribute to the global knowledge base on integrated child health interventions in malaria-endemic settings.
+
+## Specific Objectives
+
+This study is structured around the following primary and secondary objectives:
+
+### Primary Objectives
+
+1. **To determine the effect of integrating VAS with SMC on the uptake of other key Maternal, Newborn, and Child Health Week (MNCHW) interventions.**  
+   This objective focuses on quantifying the extent to which integrated delivery influences coverage of core MNCHW services such as deworming, immunization, and nutritional screening.
+
+2. **To assess health workers’ and policy makers’ perceptions of the effect of removing VAS from MNCHW on the demand for and uptake of MNCHW interventions.**  
+   This includes exploring the anticipated and observed impacts on community engagement, service delivery, and health system operations from the perspective of frontline implementers and decision-makers.
+
+3. **To determine the coverage of vitamin A following its integration with SMC.**  
+   The study aims to estimate VAS coverage rates among eligible children both prior to and following the integrated campaign, thereby establishing a baseline for future impact evaluation.
+
+4. **To monitor the coverage and quality of SMC following integration with VAS.**  
+   This objective seeks to ensure that integration does not compromise the effectiveness or operational quality of SMC delivery.
+
+### Secondary Objectives
+
+1. **To identify barriers and facilitators to the uptake of VAS and other MNCHW interventions.**  
+   By mapping individual, community, and health system factors, the study seeks to understand why some eligible populations remain unreached or are sub-optimally served.
+
+2. **To assess community awareness and perceptions of integrated campaign models.**  
+   This objective examines knowledge, attitudes, and practices (KAP) among caregivers, as well as perceived acceptability and trust in the new delivery approach.
+
+## Research Questions
+
+Based on these objectives, the study will address the following research questions:
+
+- What is the baseline coverage of VAS, SMC, deworming, immunization, and nutritional screening among target populations in Bauchi State?
+- What are the perceptions of health workers, policy makers, and caregivers regarding the integration of VAS into SMC campaigns?
+- What operational or contextual barriers hinder the effective delivery and uptake of integrated services?
+- How does integration affect the quality, completeness, and equity of service delivery for both VAS and SMC?
+- What is the level of community awareness of integrated campaigns, and what factors shape their participation?
+
+## Significance of the Study
+
+This evaluation is expected to provide critical insights for optimizing child health delivery strategies in Nigeria and similar settings. The evidence generated will not only inform local implementation but may also contribute to national and global policy discussions on integrated service delivery for child survival interventions.
+
+
+# Study Design and Methods
+## Study Design
+
+This baseline evaluation employs a **convergent mixed-methods design**, integrating both quantitative and qualitative approaches to achieve comprehensive insights:
+
+- **Quantitative Component:**  
+  A cross-sectional household survey was conducted in April 2025 among randomly sampled households across all 20 LGAs of Bauchi State. Data collection targeted children aged 6–59 months and women of childbearing age (15–49 years). The survey gathered detailed information on coverage of VAS, SMC, deworming, immunization, and nutrition interventions, as well as household and caregiver characteristics.
+
+- **Qualitative Component:**  
+  Key Informant Interviews (KIIs) and Focus Group Discussions (FGDs) were held with health workers, policy makers, and community leaders to explore perceptions regarding the integration of VAS and SMC, potential effects on other services, and barriers to uptake.  
+  The qualitative strand aims to complement and explain quantitative findings, providing context for observed coverage rates and health-seeking behavior.
+
+
+## Sampling and Analysis Methods
+
+### Sampling Approach
+
+The study employed a rigorous multi-stage stratified cluster sampling methodology to ensure that the findings would be generalizable across Bauchi State’s diverse population. In the first stage, all twenty Local Government Areas (LGAs) within the state were included in the sampling frame, ensuring statewide representativeness. Subsequently, wards within each LGA were stratified according to urban and rural status, drawing upon the INEC polling unit directory and LGA population projections to guide proportional allocation.
+
+Within each selected ward, a random sampling technique was used to select communities, with the probability of selection proportional to the size of the community population. Systematic random sampling was then utilized to identify households within each selected community. To be eligible, households were required to have at least one child aged 6–59 months or a woman of childbearing age (15–49 years).
+
+The minimum required sample size for each LGA was determined using established statistical formulas for cluster surveys. The calculations incorporated assumptions regarding the expected prevalence of key indicators, a design effect of 2.0 to account for intra-cluster correlation, and the application of a finite population correction where appropriate. Ultimately, the study achieved a sample of approximately 8,064 children and a comparable number of women of childbearing age, allowing for precise estimation of primary outcomes and adequate statistical power for subgroup analyses.
+
+## Data Collection Procedures
+
+Data were collected by trained field teams employing structured electronic questionnaires administered via mobile tablets. The questionnaires covered a wide array of topics, including household composition, child health interventions (e.g., SMC, VAS, deworming, and immunization), women’s health services, and barriers to service utilization. To enhance data quality and reduce potential bias, regular field supervision was conducted, GPS-enabled spot checks were implemented, and daily reviews of completed questionnaires took place.
+
+In addition to quantitative data collection, qualitative information was gathered through Key Informant Interviews (KIIs) and Focus Group Discussions (FGDs). KIIs were conducted with policy-makers, health managers, and program coordinators at both LGA and state levels. FGDs were held with caregivers, community leaders, and frontline health workers, guided by thematic areas informed by the WaterAid Gender Analysis Guide and the objectives of SMC/VAS integration.
+
+## Analytical Methods
+
+Quantitative data analysis was conducted using R and Microsoft Power BI. Descriptive statistics, including means, proportions, and 95% confidence intervals, were computed for all key indicators. Comparative analyses were conducted by disaggregating outcomes by LGA, educational attainment, and other sociodemographic variables. Associations between variables were evaluated using Pearson’s chi-squared tests, with Cramer’s V calculated to assess the strength of observed relationships. Where applicable, sampling weights were applied to adjust for the multi-stage design and non-response.
+
+Qualitative data analysis was performed using NVivo software. Transcripts from KIIs and FGDs were subjected to thematic analysis, with codes and themes developed inductively and deductively based on the study objectives and interview guides. Findings from the qualitative analysis were triangulated with quantitative results to provide a richer understanding of patterns and contextual drivers underlying service uptake and coverage.
+
+## Ethical Considerations
+
+Ethical approval for the study was obtained from relevant institutional review boards. Written informed consent was sought from all study participants prior to data collection. All data were stored securely and anonymized prior to analysis to ensure confidentiality and privacy.
+
+## Study Limitations
+
+This study’s cross-sectional design provides a snapshot of coverage and perceptions at a single point in time, which may not capture seasonal or temporal variations. While every effort was made to validate responses through health card verification and supervisory checks, there remains a possibility of recall bias and social desirability bias in self-reported indicators.
+
+# Results
+
 ## Demographic Profile of Respondents
 
-### 1. Geographic Distribution
 
 A total of 8,064 households were surveyed across all 20 Local Government Areas (LGAs) of Bauchi State. The distribution of respondents was broad and representative, with no single LGA accounting for more than 6.2% of the sample. This even distribution enhances the generalizability of findings and reduces the risk of location-based sampling bias. The largest numbers of households were recorded in Alkaleri, Bauchi, Katagum, and Zaki LGAs, each contributing over 6% of the total sample, while other LGAs such as Bogoro, Dass, Giade, Jama’are, Kirfi, and Warji contributed approximately 4% each. This proportional allocation underscores the study’s intention to capture the heterogeneity of population structures, access to health services, and potential differences in intervention coverage across the state.
 
