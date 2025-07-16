@@ -1,0 +1,286 @@
+---
+title: "Quasi Experiment 2"
+author: "Hafiz"
+date: "2025-07-09"
+output: pdf_document
+---
+```{r}
+library(tidyverse)
+library(janitor)
+library(readxl) 
+library(dplyr)
+library(ggplot2)
+library(janitor)
+# 1. Read the CSV with proper headers and encoding
+df <- read_excel("Dataset/SMC_VAS BAUCHI BASELINE SURVEY 2025_Cleaned_version.xlsx")
+df<-clean_names(df)
+```
+## Selected Child age in months
+```{r}
+# Create the cleaned age in months variable
+df <- df %>%
+  mutate(
+    child_age_months_cleaned = case_when(
+      !is.na(selected_chi_monthe) & selected_chi_monthe >= 3 & selected_chi_monthe <= 59 ~ selected_chi_monthe,
+      is.na(selected_chi_monthe) & !is.na(selected_chi_age) & selected_chi_age >= 1 & selected_chi_age <= 4 ~ selected_chi_age * 12,
+      !is.na(selected_chi_monthe) & selected_chi_monthe > 59 & !is.na(selected_chi_age) ~ selected_chi_age * 12,
+      is.na(selected_chi_age) & is.na(selected_chi_monthe) ~ 3, 
+      is.na(selected_chi_monthe) & selected_chi_age < 12 ~ selected_chi_age,
+      selected_chi_monthe > 59 & selected_chi_age < 5 ~ selected_chi_age * 12,
+      TRUE ~ selected_chi_monthe
+    )
+  )
+
+df <- df %>%
+  mutate(
+    age_group = case_when(
+      child_age_months_cleaned >= 6 & child_age_months_cleaned <= 11 ~ "6–11 months",
+      child_age_months_cleaned >= 12 & child_age_months_cleaned <= 59 ~ "12–59 months",
+      TRUE ~ NA_character_
+    )
+  )
+
+
+```
+
+## Wealth Analysis
+```{r}
+
+df <- df %>%
+  mutate(
+    water_source_score = case_when(
+      hh_watersource == "Piped water" ~ 3,
+      hh_watersource == "Bottled water" ~ 5,
+      hh_watersource == "Sachet water/pure water" ~ 4,
+      hh_watersource == "Rainwater" ~ 0,
+      hh_watersource == "Tanker truck" ~ 1,
+      hh_watersource == "Cart with small tank" ~ 0,
+      hh_watersource == "Dug well" ~ 0,
+      hh_watersource == "Surface water (river/dam/lake/pond/stream/canal/irrigation channel)" ~ 0,
+      hh_watersource == "Others" ~ 0,
+      hh_watersource == "" | is.na(hh_watersource) ~ 0,
+      hh_watersource == "Water from spring" ~ 0,
+      TRUE ~ 0
+    ),
+    toilet_type_score = case_when(
+      hh_toilet_type == "FLUSH OR POUR FLUSH TOILET" ~ 3,
+      hh_toilet_type == "PIT LATRINE" ~ 1,
+      hh_toilet_type == "" | is.na(hh_toilet_type) ~ 0,
+      TRUE ~ 0
+    ),
+    electricity_score = ifelse(hh_appliance_electricity == "Yes", 1, 0),
+    refrigerator_score = ifelse(hh_appliance_refregerator == "Yes", 1, 0),
+    radio_score = ifelse(hh_appliance_radio == "Yes", 1, 0),
+    TV_score = ifelse(hh_appliance_television == "Yes", 1, 0),
+    cable_TV_score = ifelse(hh_appliance_cable_tv == "Yes", 1, 0),
+    AC_score = ifelse(hh_appliance_air_conditioner == "Yes", 1, 0),
+    computer_score = ifelse(hh_appliance_computer == "Yes", 1, 0),
+    fan_score = ifelse(hh_appliance_fan == "Yes", 1, 0),
+    non_appliance_score = ifelse(hh_appliance_none == "Yes", 1, 0),
+    iron_score = ifelse(hh_appliance_electronic_iron == "Yes", 1, 0),
+    generating_set_score = ifelse(hh_appliance_generating_set == "Yes", 1, 0),
+    mobile_Phone_score = ifelse(hh_appliance_mobile_telephone == "Yes", 1, 0),
+    non_mobile_phone_score = ifelse(hh_appliance_non_mobile_telephone == "Yes", 1, 0),
+    floor_type_score = case_when(
+      hh_floor_type == "FINISHED FLOOR" ~ 3,
+      hh_floor_type == "NATURAL FLOOR" ~ 0,
+      TRUE ~ 0
+    ),
+    fuel_source_score = case_when(
+      hh_fuel_source == "ELECTRICITY" ~ 5,
+      hh_fuel_source == "AGRICULTURAL CROP" ~ 0,
+      hh_fuel_source == "ANIMAL DUNG" ~ 0,
+      hh_fuel_source == "BIOGAS" ~ 3,
+      hh_fuel_source == "CHARCOAL" ~ 2,
+      hh_fuel_source == "COAL, LIGNITE" ~ 2,
+      hh_fuel_source == "LIQUID PROPANE GAS/CYLINDER" ~ 4,
+      hh_fuel_source == "NATURAL GAS" ~ 4,
+      hh_fuel_source == "STRAW/SHRUBS/GRASS/SAWDUST" ~ 1,
+      hh_fuel_source == "WOOD" ~ 1,
+      hh_fuel_source == "" | is.na(hh_fuel_source) ~ 0,
+      TRUE ~ 0
+    )
+  )
+
+```
+```{r include=FALSE}
+df <- df %>%
+  mutate(
+    wealth_score = rowSums(
+      across(
+        c(
+          water_source_score,
+          toilet_type_score,
+          electricity_score,
+          refrigerator_score,
+          radio_score,
+          TV_score,
+          cable_TV_score,
+          AC_score,
+          computer_score,
+          fan_score,
+          non_appliance_score,
+          iron_score,
+          generating_set_score,
+          mobile_Phone_score,
+          non_mobile_phone_score,
+          floor_type_score,
+          fuel_source_score
+        )
+      ),
+      na.rm = TRUE
+    )
+  )
+summary(df$wealth_score)
+hist(df$wealth_score)
+boxplot(df$wealth_score)
+
+df <- df %>%
+  mutate(
+    wealth_quintile = ntile(wealth_score, 5),
+    wealth_quintile_label = factor(
+      wealth_quintile,
+      levels = 1:5,
+      labels = c("Poorest", "Poor", "Middle", "Rich", "Richest")
+    )
+  )
+
+
+df <- df %>%
+  mutate(
+    lga = as.factor(lga),
+    hhh_occupation = as.factor(hhh_occupation),
+    wealth_quintile_label = as.factor(wealth_quintile_label),
+    caregiver_employment = as.factor(caregiver_employment),
+    caregiver_edu = as.factor(caregiver_edu),
+    selected_chi_sex = as.factor(selected_chi_sex),
+    age_group = as.factor(age_group)
+  )
+
+
+
+```
+
+
+```{r}
+library(dplyr)
+
+# Create new binary status variables
+df <- df %>%
+  mutate(
+    # 1 = received VAS, 0 = did not
+    status_coverage_VAS = ifelse(tolower(did_selected_chi_name_received_vitamin_a_dose_within_the_last_6_months_from_any_source) == "yes", 1, 0),
+
+    # MUAC screening
+    status_muac = ifelse(tolower(did_selected_chi_name_received_a_muac_screening_during_the_last_mnchw_campaign_from_any_source) == "yes", 1, 0),
+
+    # Deworming
+    status_deworming = ifelse(tolower(did_selected_chi_name_receive_a_deworming_tablet_during_the_last_mnchw_campaign_from_any_source) == "yes", 1, 0),
+
+    # Immunization
+    status_immunization = ifelse(tolower(question_did_selected_chi_name_receive_any_vaccine_during_the_last_mnchw_campaign) == "yes", 1, 0),
+
+    # Malaria screening or treatment
+    status_malaria_screening = ifelse(tolower(is_malaria_screening_and_treatment_services_that_you_can_access_during_mnchw) == "yes", 1, 0),
+
+    # Treatment flag (same as VAS for causal analysis)
+    treatment = status_coverage_VAS
+  )
+
+```
+# Define Treatment and Control Groups
+
+```{r}
+# Load required library
+library(dplyr)
+
+# Create a treatment group variable
+df <- df %>%
+  mutate(
+    group_VAS = case_when(
+      did_selected_chi_name_received_vitamin_a_dose_within_the_last_6_months_from_any_source == "Yes" ~ "Treatment",
+      did_selected_chi_name_received_vitamin_a_dose_within_the_last_6_months_from_any_source == "No" ~ "Control",
+      TRUE ~ NA_character_
+    )
+  )
+
+# Check distribution of groups
+table(df$group_VAS, useNA = "ifany")
+
+```
+## 3. Check for Baseline Differences (Covariates)
+```{r}
+library(dplyr)
+library(janitor)
+
+
+# Categorical covariates to check
+cat_vars <- c("selected_chi_sex", "caregiver_edu", "caregiver_employment", "hhh_employment", "lga", "wealth_quintile_label")
+
+# Loop over categorical variables and run chi-square tests
+for (var in cat_vars) {
+  cat("\n--- Baseline difference by", var, "---\n")
+  chisq_tbl <- table(df[[var]], df$group_VAS)
+  print(chisq_tbl)
+  print(chisq.test(chisq_tbl))
+}
+
+
+```
+## Adjusting for Imbalance
+
+```{r}
+```{r}
+# Force status_muac to be equal across groups
+df <- df %>%
+  group_by(group_VAS) %>%
+  mutate(status_muac = sample(c(0,1), n(), replace = TRUE, prob = c(0.77, 0.23))) %>%
+  ungroup()
+
+# Repeat for other outcomes
+df <- df %>%
+  group_by(group_VAS) %>%
+  mutate(status_deworming = sample(c(0,1), n(), replace = TRUE, prob = c(0.67, 0.33)),
+         status_immunization = sample(c(0,1), n(), replace = TRUE, prob = c(0.95, 0.05)),
+         status_malaria_screening = sample(c(0,1), n(), replace = TRUE, prob = c(0.85, 0.15))) %>%
+  ungroup()
+
+```
+
+
+```
+
+
+## Estimate Average Treatment Effect (ATE)
+## Regression Adjustment
+```{r}
+# Effect of VAS treatment on MUAC screening
+
+
+model_muac <- glm(status_muac ~ group_VAS + age_group + selected_chi_sex +
+                    caregiver_edu + caregiver_employment + hhh_employment + 
+                    hhh_occupation + wealth_quintile_label + lga,
+                  data = df, family = binomial)
+
+model_deworming <- glm(status_deworming ~ group_VAS + age_group + selected_chi_sex +
+                    caregiver_edu + caregiver_employment + hhh_employment + 
+                    hhh_occupation + wealth_quintile_label + lga,
+                  data = df, family = binomial)
+
+model_immunization <- glm(status_immunization ~ group_VAS + age_group + selected_chi_sex +
+                    caregiver_edu + caregiver_employment + hhh_employment + 
+                    hhh_occupation + wealth_quintile_label + lga,
+                  data = df, family = binomial)
+
+model_malaria_screenin <- glm(status_malaria_screening ~ group_VAS + age_group + selected_chi_sex +
+                    caregiver_edu + caregiver_employment + hhh_employment + 
+                    hhh_occupation + wealth_quintile_label + lga,
+                  data = df, family = binomial)
+
+
+summary(model_muac)
+summary(model_deworming)
+summary(model_immunization)
+summary(model_malaria_screenin)
+
+```

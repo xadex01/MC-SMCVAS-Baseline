@@ -3,9 +3,6 @@ title: "**MC SMC+VAS Baseline Analysis**  \n*Bauchi State, Nigeria – 2025*\n"
 author: "Malaria Consortium"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output:
-  word_document:
-    toc: true
-    toc_depth: '2'
   pdf_document:
     toc: true
     toc_depth: 2
@@ -14,6 +11,13 @@ output:
     latex_engine: pdflatex
     highlight: tango
     keep_tex: true
+  word_document:
+    toc: true
+    toc_depth: '2'
+  html_document:
+    toc: true
+    toc_depth: '2'
+    df_print: paged
 fontsize: 11pt
 documentclass: report
 geometry: margin=1in
@@ -26,7 +30,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 library(readxl)
 
-df <- read_excel("Dataset/SMC_VAS BAUCHI BASELINE SURVEY 2025_Play.xlsx")
+df <- read_excel("Dataset/SMC_VAS BAUCHI BASELINE SURVEY 2025_Cleaned_version.xlsx")
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -151,7 +155,7 @@ This study’s cross-sectional design provides a snapshot of coverage and percep
 
 A total of 8,064 households were surveyed across all 20 Local Government Areas (LGAs) of Bauchi State. The distribution of respondents was broad and representative, with no single LGA accounting for more than 6.2% of the sample. This even distribution enhances the generalizability of findings and reduces the risk of location-based sampling bias. The largest numbers of households were recorded in Alkaleri, Bauchi, Katagum, and Zaki LGAs, each contributing over 6% of the total sample, while other LGAs such as Bogoro, Dass, Giade, Jama’are, Kirfi, and Warji contributed approximately 4% each. This proportional allocation underscores the study’s intention to capture the heterogeneity of population structures, access to health services, and potential differences in intervention coverage across the state.
 
-```{r warning=FALSE, include=FALSE}
+```{r echo=TRUE}
 # Calculate frequency and percent
 lga_table <- as.data.frame(table(df$LGA))
 colnames(lga_table) <- c("LGA", "Frequency")
